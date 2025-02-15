@@ -34,7 +34,7 @@ jobs:
       - name: Wait for PostgreSQL to be ready
         run: |
           for i in {1..30}; do
-            if docker-compose -f docker-compose-dev.yml exec -T mantap_db pg_isready -U root; then
+            if docker-compose -f docker-compose-depl.yml exec -T mantap_db pg_isready -U root; then
               echo "PostgreSQL is ready!"
               break
             fi
@@ -44,13 +44,13 @@ jobs:
 
       - name: Run migrations
         run: |
-          docker-compose -f docker-compose-dev.yml exec -T mantap sh -c 'migrate -path db/migration -database "postgres://root:mantap123@mantap_db:5432/mantap?sslmode=disable" -verbose up'
+          docker-compose -f docker-compose-depl.yml exec -T mantap sh -c 'migrate -path db/migration -database "postgres://root:mantap123@mantap_db:5432/mantap?sslmode=disable" -verbose up'
 
       - name: Run Tests
         run: |
-          docker-compose -f docker-compose-dev.yml exec -T mantap sh -c 'go test -v -cover ./...'
+          docker-compose -f docker-compose-depl.yml exec -T mantap sh -c 'go test -v -cover ./...'
 
       - name: Stop Services
         if: always()
         run: |
-          docker-compose -f docker-compose-dev.yml down --rmi all
+          docker-compose -f docker-compose-depl.yml down --rmi all

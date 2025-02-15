@@ -10,7 +10,7 @@ services:
     environment:
       DATABASE_URL: postgres://root:mantap123@mantap_db:5432/mantap?sslmode=disable
     ports:
-      - 8085:8080
+      - 8080:8080
     restart: on-failure
 
   mantap_db:
