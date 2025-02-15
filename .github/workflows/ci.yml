@@ -11,30 +11,35 @@ jobs:
     name: Test
     runs-on: ubuntu-latest
 
-    services:
-      postgres:
-        image: postgres:15
-        env:
-          POSTGRES_USER: root
-          POSTGRES_PASSWORD: mantap123
-          POSTGRES_DB: mantap
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
     steps:
       - name: Set up Go 1.x
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v1
         with:
           go-version: ^1.23
         id: go
 
       - name: Check out code into the Go module directory
         uses: actions/checkout@v2
+
+      - name: Install Docker Compose
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y docker-compose
+          docker-compose --version
+
+      - name: Build and Start Services
+        run: |
+          docker-compose -f docker-compose-depl.yml up -d --build mantap
+
+      - name: Download wait-for-it script
+        run: |
+          curl -o wait-for-it.sh https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh
+          chmod +x wait-for-it.sh
+
+      - name: Wait for PostgreSQL to be ready
+        run: |
+          sleep 10
+          ./wait-for-it.sh mantap_db:5432 --timeout=120 --strict -- echo "PostgreSQL is up"
 
       - name: Install golang-migrate
         run: |
@@ -44,7 +49,13 @@ jobs:
 
       - name: Run migrations
         run: |
-          migrate -path mantap/db/migration -database "postgres://root:mantap123@localhost:5432/mantap?sslmode=disable" -verbose up
+          docker-compose -f docker-compose-depl.yml exec -T mantap sh -c 'migrate -path db/migration -database "postgres://root:mantap123@mantap_db:5432/mantap?sslmode=disable" -verbose up'
 
-      - name: Test
-        run: go test -v -cover -short ./...
+      - name: Run Tests
+        run: |
+          docker-compose -f docker-compose-depl.yml exec -T mantap sh -c 'go test -v -cover ./...'
+
+      - name: Stop Services
+        if: always()
+        run: |
+          docker-compose -f docker-compose-depl.yml down --rmi all
