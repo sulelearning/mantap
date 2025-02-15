@@ -1,15 +1,27 @@
-version: "3.9"
+version: '3.9'
 
 services:
   graphql:
     build:
       context: .
       dockerfile: ./graphql/depl.dockerfile
+    ports:
+      - "8085:8080"
+    volumes:
+      - ./graphql:/mnt/microservice/graphql
+      - ./go.mod:/mnt/microservice/go.mod
+      - ./go.sum:/mnt/microservice/go.sum
 
   mantap:
     build:
       context: .
       dockerfile: ./mantap/depl.dockerfile
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./mantap:/mnt/microservice/mantap
+      - ./go.mod:/mnt/microservice/go.mod
+      - ./go.sum:/mnt/microservice/go.sum
     depends_on:
       - mantap_db
     environment:
@@ -24,4 +36,6 @@ services:
       POSTGRES_DB: mantap
       POSTGRES_USER: root
       POSTGRES_PASSWORD: mantap123
+    ports:
+      - "5432:5432"
     restart: unless-stopped

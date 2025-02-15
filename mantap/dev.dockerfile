@@ -20,7 +20,6 @@ RUN go install github.com/air-verse/air@latest \
     && go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest \
     && go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
 
-
 # Mengekspos port yang digunakan aplikasi
 EXPOSE 8080
 
