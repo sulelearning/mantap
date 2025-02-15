@@ -4,7 +4,7 @@ services:
   graphql:
     build:
       context: .
-      dockerfile: ./graphql/dev.dockerfile
+      dockerfile: ./graphql/depl.dockerfile
     ports:
       - "8085:8080"
     volumes:
