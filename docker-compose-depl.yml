@@ -4,7 +4,7 @@ services:
   mantap:
     build:
       context: .
-      dockerfile: ./mantap/depl.dockerfile
+      dockerfile: ./mantap/dev.dockerfile
     depends_on:
       - mantap_db
     environment:
