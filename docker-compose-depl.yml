@@ -1,11 +1,6 @@
 version: "3.9"
 
 services:
-  graphql:
-    build:
-      context: .
-      dockerfile: ./graphql/depl.dockerfile
-
   mantap:
     build:
       context: .
