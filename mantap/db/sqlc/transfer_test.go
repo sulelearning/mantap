@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Zulhaidir/microservice/mantap/util"
 	"github.com/stretchr/testify/require"
+	"github.com/sulelearning/mantap/mantap/util"
 )
 
 func createRandomTransfer(t *testing.T, account1, account2 Account) Transfer {
