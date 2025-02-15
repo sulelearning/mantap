@@ -31,6 +31,17 @@ jobs:
         run: |
           docker-compose -f docker-compose-dev.yml up -d --build mantap
 
+      - name: Wait for PostgreSQL to be ready
+        run: |
+          for i in {1..30}; do
+            if docker-compose -f docker-compose-dev.yml exec -T mantap_db pg_isready -U root; then
+              echo "PostgreSQL is ready!"
+              break
+            fi
+            echo "Waiting for PostgreSQL to be ready..."
+            sleep 2
+          done
+
       - name: Run migrations
         run: |
           docker-compose -f docker-compose-dev.yml exec -T mantap sh -c 'migrate -path db/migration -database "postgres://root:mantap123@mantap_db:5432/mantap?sslmode=disable" -verbose up'
