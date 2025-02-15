@@ -5,8 +5,7 @@ COPY go.mod go.sum ./
 RUN go mod download
 COPY mantap mantap
 RUN GO111MODULE=on go build -o /go/bin/app ./mantap/cmd/mantap \
-    && go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest \
-    && go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
+    && go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
 
 FROM alpine:3.11
 WORKDIR /usr/bin
