@@ -13,7 +13,7 @@ jobs:
 
     steps:
       - name: Set up Go 1.x
-        uses: actions/setup-go@v1
+        uses: actions/setup-go@v2
         with:
           go-version: ^1.23
         id: go
@@ -30,22 +30,6 @@ jobs:
       - name: Build and Start Services
         run: |
           docker-compose -f docker-compose-depl.yml up -d --build mantap
-
-      - name: Download wait-for-it script
-        run: |
-          curl -o wait-for-it.sh https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh
-          chmod +x wait-for-it.sh
-
-      - name: Wait for PostgreSQL to be ready
-        run: |
-          sleep 10
-          ./wait-for-it.sh mantap_db:5432 --timeout=120 --strict -- echo "PostgreSQL is up"
-
-      - name: Install golang-migrate
-        run: |
-          curl -L https://github.com/golang-migrate/migrate/releases/download/v4.14.1/migrate.linux-amd64.tar.gz | tar xvz
-          sudo mv migrate.linux-amd64 /usr/bin/migrate
-          which migrate
 
       - name: Run migrations
         run: |
