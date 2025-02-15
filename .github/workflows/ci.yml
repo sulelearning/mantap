@@ -13,7 +13,7 @@ jobs:
 
     services:
       postgres:
-        image: postgres:15-alpine
+        image: postgres:15
         env:
           POSTGRES_USER: root
           POSTGRES_PASSWORD: mantap123
