@@ -6,12 +6,11 @@ services:
       context: .
       dockerfile: ./mantap/depl.dockerfile
     depends_on:
-      mantap_db:
-        condition: service_healthy
+      - mantap_db
     environment:
       DATABASE_URL: postgres://root:mantap123@mantap_db:5432/mantap?sslmode=disable
     ports:
-      - 8080:8080
+      - 8087:8080
     restart: on-failure
 
   mantap_db:
@@ -22,11 +21,6 @@ services:
       POSTGRES_DB: mantap
       POSTGRES_USER: root
       POSTGRES_PASSWORD: mantap123
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U root" ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
     ports:
       - 5432:5432
     restart: unless-stopped
