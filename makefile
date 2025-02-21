@@ -66,14 +66,7 @@ migrate-create:
 	db_service="$$service"_db; \
 	echo "Migrate $$service..."; \
 	docker-compose -f docker-compose-dev.yml exec $$service sh \
-	-c "migrate create -ext sql -dir db/migration -seq init_schema"; \
-	sed -i "/FROM postgres:15/a \\\n\COPY db/migration /docker-entrypoint-initdb.d/migration" $${service}/db.dockerfile && \
-	docker-compose -f docker-compose-dev.yml stop $$service && \
-	docker-compose -f docker-compose-dev.yml stop $$db_service && \
-	docker-compose -f docker-compose-dev.yml rm -f $$service && \
-	docker-compose -f docker-compose-dev.yml rm -f $$db_service && \
-	rm -rf $${service}/tmp && \
-	docker-compose -f docker-compose-dev.yml up --build $$service
+	-c "migrate create -ext sql -dir db/migration -seq init_schema";
 
 rebuild-service:
 	@read -p "Masukkan nama service: " service; \

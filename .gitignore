@@ -4,5 +4,6 @@ internal/
 
 # Mengabaikan folder
 readme.md
+makefile
 
 **/tmp/
