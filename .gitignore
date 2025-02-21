@@ -5,5 +5,7 @@ internal/
 # Mengabaikan folder
 readme.md
 makefile
+docker-compose-dev.yml
 
 **/tmp/
+**/dev.dockerfile
