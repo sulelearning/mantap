@@ -7,21 +7,27 @@ import (
 )
 
 /* store penyedia semua fungsi untuk mengeksekusi DB Queries dan DB Transaction */
-type Store struct {
+type Store interface {
+	Querier
+	TransferTx(ctx context.Context, arg TransferTxParams) (TransferTxResult, error)
+}
+
+/* store penyedia semua fungsi untuk mengeksekusi DB Queries dan DB Transaction */
+type SQLStore struct {
 	*Queries
 	db *sql.DB
 }
 
 /* NewStore adalah new store*/
-func NewStore(db *sql.DB) *Store {
-	return &Store{
+func NewStore(db *sql.DB) Store {
+	return &SQLStore{
 		db:      db,
 		Queries: New(db),
 	}
 }
 
 /* Implementasi dari Store, execTx mengeksekusi fungsi dengan database transaction */
-func (store *Store) execTx(ctx context.Context, fn func(*Queries) error) error {
+func (store *SQLStore) execTx(ctx context.Context, fn func(*Queries) error) error {
 	tx, err := store.db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
@@ -58,7 +64,7 @@ type TransferTxResult struct {
 ** Membuat catatan/record transfer, menambahkan entry account, dan memperbarui
 ** saldo/balance akun dalam satu transaksi basis data
  */
-func (store *Store) TransferTx(ctx context.Context, arg TransferTxParams) (TransferTxResult, error) {
+func (store *SQLStore) TransferTx(ctx context.Context, arg TransferTxParams) (TransferTxResult, error) {
 	var result TransferTxResult
 
 	err := store.execTx(ctx, func(q *Queries) error {

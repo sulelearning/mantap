@@ -6,21 +6,18 @@ import (
 
 	"github.com/Zulhaidir/microservice/mantap/api"
 	db "github.com/Zulhaidir/microservice/mantap/db/sqlc"
+	"github.com/Zulhaidir/microservice/mantap/util"
 	_ "github.com/lib/pq"
 )
 
-const (
-	dbDriver = "postgres"
-	/* Untuk image */
-	dbSource = "postgres://root:mantap123@mantap_db:5432/mantap?sslmode=disable"
-	/* untuk host */
-	// dbSource = "postgres://root:mantap123@127.0.0.1:5432/mantap?sslmode=disable"
-
-	serverAddress = "0.0.0.0:8080"
-)
-
 func main() {
-	conn, err := sql.Open(dbDriver, dbSource)
+	/* Load Config */
+	config, err := util.LoadConfig(".")
+	if err != nil {
+		log.Fatal("Tidak dapat load config:", err)
+	}
+
+	conn, err := sql.Open(config.DBDriver, config.DBSource)
 	if err != nil {
 		log.Fatal("Tidak dapat konek ke database:", err)
 	}
@@ -28,7 +25,7 @@ func main() {
 	store := db.NewStore(conn)
 	server := api.NewServer(store)
 
-	err = server.Start(serverAddress)
+	err = server.Start(config.ServerAddress)
 	if err != nil {
 		log.Fatal("Tidak dapat menjalankan server:", err)
 	}
