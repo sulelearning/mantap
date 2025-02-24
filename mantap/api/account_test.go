@@ -17,10 +17,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestAccountGetAPI(t *testing.T) {
+func TestGetAccountAPI(t *testing.T) {
 	account := randomAccount()
 
-	/* Anonymous class/struct testCases to covered testing 100% */
+	/* Anonymous class/struct testCases to coverage testing 100% */
 	testCases := []struct {
 		name          string
 		accountID     int64
