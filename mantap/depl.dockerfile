@@ -3,8 +3,7 @@ RUN apk --no-cache add gcc g++ make ca-certificates
 WORKDIR /go/src/github.com/Zulhaidir/microservice
 COPY go.mod go.sum ./
 COPY mantap mantap
-RUN GO111MODULE=on go build -o /go/bin/app ./mantap/cmd/mantap \
-    && go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
+RUN GO111MODULE=on go build -o /go/bin/app ./mantap/cmd/mantap
 
 # FROM alpine:3.11
 # WORKDIR /usr/bin
