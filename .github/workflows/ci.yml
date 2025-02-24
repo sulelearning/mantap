@@ -30,12 +30,6 @@ jobs:
       - name: Build and Start Services
         run: |
           docker-compose -f docker-compose-depl.yml up -d --build mantap
-      
-      - name: Install golang-migrate
-        run: |
-          curl -L https://github.com/golang-migrate/migrate/releases/download/v4.14.1/migrate.linux-amd64.tar.gz | tar xvz
-          sudo mv migrate.linux-amd64 /usr/bin/migrate
-          which migrate
 
       - name: Wait for PostgreSQL to be ready
         run: |
