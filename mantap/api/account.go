@@ -66,7 +66,7 @@ type listAccountRequest struct {
 	PageSize int32 `form:"page_size" binding:"required,min=1,max=10"`
 }
 
-/* reciever Server getAccount */
+/* reciever Server listAccounts */
 func (server *Server) listAccounts(ctx *gin.Context) {
 	var req listAccountRequest
 	if err := ctx.ShouldBindQuery(&req); err != nil {
