@@ -7,7 +7,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func TestPssword(t *testing.T) {
+func TestPassword(t *testing.T) {
 	password := RandomString(6)
 
 	// hashedPassword dari database
