@@ -1,12 +1,13 @@
 # build stage
-FROM golang:1.23-alpine AS build
+FROM docker.io/library/golang:1.23.3-alpine3.19 AS build
 WORKDIR /go/src/microservice
-COPY . .
+COPY go.mod go.sum ./
+COPY mantap mantap
 RUN go build -o /go/bin/app ./mantap/cmd/mantap && \
     go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
 
 # run stage
-FROM alpine:3.13
+FROM docker.io/library/alpine:3.19
 WORKDIR /usr/bin
 COPY --from=build /go/bin .
 COPY mantap/start.sh .
