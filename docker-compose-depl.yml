@@ -11,10 +11,10 @@ services:
     depends_on:
       - mantap_db
     environment:
-      DATABASE_URL: postgres://root:mantap123@database:5432/mantap?sslmode=disable
-    restart: on-failure
+      DATABASE_URL: postgres://root:mantap123@mantap_db:5432/mantap?sslmode=disable
     networks:
       - my_network
+    restart: always
 
   mantap_db:
     container_name: database
@@ -25,10 +25,15 @@ services:
       POSTGRES_PASSWORD: mantap123
     ports:
       - "5432:5432"
-    restart: unless-stopped
     networks:
       - my_network
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    restart: unless-stopped
 
 networks:
   my_network:
     external: true
+
+volumes:
+  db_data:
