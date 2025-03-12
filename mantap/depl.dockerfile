@@ -9,10 +9,7 @@ RUN go build -o /go/bin/app ./mantap/cmd/mantap && \
 # run stage
 FROM docker.io/library/alpine:3.19
 WORKDIR /usr/bin
-COPY --from=build /usr/local/go/bin/go .
 COPY --from=build /go/bin .
-COPY mantap /mnt/mantap 
-COPY go.* /mnt
 COPY mantap/start.sh .
 COPY mantap/app.env .
 COPY mantap/db/migration ./migration

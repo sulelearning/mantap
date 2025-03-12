@@ -7,6 +7,5 @@ readme.md
 makefile
 docker-compose-dev.yml
 
-**/.air.toml
 **/tmp/
 **/dev.dockerfile
