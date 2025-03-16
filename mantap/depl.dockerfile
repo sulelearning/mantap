@@ -14,6 +14,6 @@ COPY mantap/start.sh .
 COPY mantap/app.env .
 COPY mantap/db/migration ./migration
 RUN chmod +x start.sh
-EXPOSE 8080
+EXPOSE 8080 9090
 CMD ["app"]
 ENTRYPOINT ["./start.sh"]
