@@ -1,18 +1,22 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"log"
 	"net"
+	"net/http"
 
 	"github.com/Zulhaidir/microservice/mantap/api"
 	db "github.com/Zulhaidir/microservice/mantap/db/sqlc"
 	"github.com/Zulhaidir/microservice/mantap/grpcapi"
 	"github.com/Zulhaidir/microservice/mantap/pb"
 	"github.com/Zulhaidir/microservice/mantap/util"
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	_ "github.com/lib/pq"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
+	"google.golang.org/protobuf/encoding/protojson"
 )
 
 func main() {
@@ -28,8 +32,10 @@ func main() {
 	}
 
 	store := db.NewStore(conn)
+	go runGatewayServer(config, store)
 	runGrpcServer(config, store)
-	runGinServer(config, store)
+
+	// runGinServer(config, store)
 }
 
 func runGrpcServer(config util.Config, store db.Store) {
@@ -45,13 +51,53 @@ func runGrpcServer(config util.Config, store db.Store) {
 	reflection.Register(grpcServer)
 	listener, err := net.Listen("tcp", config.GRPCServerAddress)
 	if err != nil {
-		log.Fatal("Tidak dapat membuat listener")
+		log.Fatal("Tidak dapat membuat listener:", err)
 	}
 
 	log.Printf("start gRPC server at %s", listener.Addr().String())
 	err = grpcServer.Serve(listener)
 	if err != nil {
-		log.Fatal("tidak dapat menjalankan server gRPC")
+		log.Fatal("tidak dapat menjalankan server gRPC:", err)
+	}
+}
+
+func runGatewayServer(config util.Config, store db.Store) {
+	server, err := grpcapi.NewServer(config, store)
+	if err != nil {
+		log.Fatal("Tidak dapat membuat server:", err)
+	}
+
+	jsonOption := runtime.WithMarshalerOption(runtime.MIMEWildcard, &runtime.JSONPb{
+		MarshalOptions: protojson.MarshalOptions{
+			UseProtoNames: true,
+		},
+		UnmarshalOptions: protojson.UnmarshalOptions{
+			DiscardUnknown: true,
+		},
+	})
+
+	grpcMux := runtime.NewServeMux(jsonOption)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	err = pb.RegisterSimpleBankHandlerServer(ctx, grpcMux, server)
+	if err != nil {
+		log.Fatal("Tidak dapat Menghandle register server:", err)
+	}
+
+	mux := http.NewServeMux()
+	mux.Handle("/", grpcMux)
+
+	listener, err := net.Listen("tcp", config.HTTPServerAddress)
+	if err != nil {
+		log.Fatal("Tidak dapat membuat listener:", err)
+	}
+
+	log.Printf("start HTTP Gateway server at %s", listener.Addr().String())
+	err = http.Serve(listener, mux)
+	if err != nil {
+		log.Fatal("tidak dapat menjalankan server HTTP Gateway:", err)
 	}
 }
 
