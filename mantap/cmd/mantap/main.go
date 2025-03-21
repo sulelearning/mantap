@@ -3,9 +3,9 @@ package main
 import (
 	"context"
 	"database/sql"
-	"log"
 	"net"
 	"net/http"
+	"os"
 
 	"github.com/Zulhaidir/microservice/mantap/api"
 	db "github.com/Zulhaidir/microservice/mantap/db/sqlc"
@@ -19,6 +19,8 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	_ "github.com/lib/pq"
 	"github.com/rakyll/statik/fs"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/protobuf/encoding/protojson"
@@ -28,12 +30,16 @@ func main() {
 	/* Load Config */
 	config, err := util.LoadConfig(".")
 	if err != nil {
-		log.Fatal("Tidak dapat load config:", err)
+		log.Fatal().Msg("Tidak dapat load config")
+	}
+
+	if config.Environment == "development" {
+		log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 	}
 
 	conn, err := sql.Open(config.DBDriver, config.DBSource)
 	if err != nil {
-		log.Fatal("Tidak dapat konek ke database:", err)
+		log.Fatal().Msg("Tidak dapat konek ke database")
 	}
 
 	// run DB migration, disini kita menjalankan migrations tanpa perlu menggunakan pada command line: "make migrate-up"
@@ -49,43 +55,46 @@ func main() {
 func runDBMigration(migrationURL string, dbSource string) {
 	migration, err := migrate.New(migrationURL, dbSource)
 	if err != nil {
-		log.Fatal("tidak dapat membuat instance migrate baru:", err)
+		log.Fatal().Msg("tidak dapat membuat instance migrate baru")
 	}
 
 	if err = migration.Up(); err != nil && err != migrate.ErrNoChange {
-		log.Fatal("gagal untuk menjalankan migrate up:", err)
+		log.Fatal().Msg("gagal untuk menjalankan migrate up")
 	}
 
-	log.Println("db migrate suceesfully")
+	log.Info().Msg("db migrate suceesfully")
 }
 
 func runGrpcServer(config util.Config, store db.Store) {
 	server, err := grpcapi.NewServer(config, store)
 	if err != nil {
-		log.Fatal("Tidak dapat membuat server:", err)
+		log.Fatal().Msg("Tidak dapat membuat server")
 	}
 
-	grpcServer := grpc.NewServer()
+	// logger gRPC API
+	grpcLogger := grpc.UnaryInterceptor(grpcapi.GrpcLogger)
+
+	grpcServer := grpc.NewServer(grpcLogger)
 	pb.RegisterSimpleBankServer(grpcServer, server)
 
 	// opsional: menadaftarkan reflection service untuk server grpc
 	reflection.Register(grpcServer)
 	listener, err := net.Listen("tcp", config.GRPCServerAddress)
 	if err != nil {
-		log.Fatal("Tidak dapat membuat listener:", err)
+		log.Fatal().Msg("Tidak dapat membuat listener")
 	}
 
-	log.Printf("start gRPC server at %s", listener.Addr().String())
+	log.Info().Msgf("start gRPC server at %s", listener.Addr().String())
 	err = grpcServer.Serve(listener)
 	if err != nil {
-		log.Fatal("tidak dapat menjalankan server gRPC:", err)
+		log.Fatal().Msg("tidak dapat menjalankan server gRPC")
 	}
 }
 
 func runGatewayServer(config util.Config, store db.Store) {
 	server, err := grpcapi.NewServer(config, store)
 	if err != nil {
-		log.Fatal("Tidak dapat membuat server:", err)
+		log.Fatal().Msg("Tidak dapat membuat server")
 	}
 
 	jsonOption := runtime.WithMarshalerOption(runtime.MIMEWildcard, &runtime.JSONPb{
@@ -104,7 +113,7 @@ func runGatewayServer(config util.Config, store db.Store) {
 
 	err = pb.RegisterSimpleBankHandlerServer(ctx, grpcMux, server)
 	if err != nil {
-		log.Fatal("Tidak dapat Menghandle register server:", err)
+		log.Fatal().Msg("Tidak dapat Menghandle register server")
 	}
 
 	mux := http.NewServeMux()
@@ -112,7 +121,7 @@ func runGatewayServer(config util.Config, store db.Store) {
 
 	statikFS, err := fs.New()
 	if err != nil {
-		log.Fatal("tidak dapat membuat statik fs:", err)
+		log.Fatal().Msg("tidak dapat membuat statik fs")
 	}
 
 	swaggerHandler := http.StripPrefix("/swagger/", http.FileServer(statikFS))
@@ -120,24 +129,24 @@ func runGatewayServer(config util.Config, store db.Store) {
 
 	listener, err := net.Listen("tcp", config.HTTPServerAddress)
 	if err != nil {
-		log.Fatal("Tidak dapat membuat listener:", err)
+		log.Fatal().Msg("Tidak dapat membuat listener")
 	}
 
-	log.Printf("start HTTP Gateway server at %s", listener.Addr().String())
+	log.Info().Msgf("start HTTP Gateway server at %s", listener.Addr().String())
 	err = http.Serve(listener, mux)
 	if err != nil {
-		log.Fatal("tidak dapat menjalankan server HTTP Gateway:", err)
+		log.Fatal().Msg("tidak dapat menjalankan server HTTP Gateway")
 	}
 }
 
 func runGinServer(config util.Config, store db.Store) {
 	server, err := api.NewServer(config, store)
 	if err != nil {
-		log.Fatal("Tidak dapat membuat server:", err)
+		log.Fatal().Msg("Tidak dapat membuat server")
 	}
 
 	err = server.Start(config.HTTPServerAddress)
 	if err != nil {
-		log.Fatal("Tidak dapat menjalankan server:", err)
+		log.Fatal().Msg("Tidak dapat menjalankan server")
 	}
 }
